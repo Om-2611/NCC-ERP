@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Based ERP System for NCC Cadets</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e0f2f7 0%, #d4ebf2 100%); /* Subtle gradient background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .presentation-container {
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+            width: 100%;
+            max-width: 960px; /* Standard presentation width */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Keep overflow hidden for the main container */
+            position: relative;
+            border: 1px solid #e2e8f0; /* Subtle border */
+            min-height: 540px; /* Minimum height for desktop view, roughly 960 * 9/16 */
+        }
+        .slide {
+            width: 100%;
+            height: 100%; /* Make slide fill container height */
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            box-sizing: border-box;
+            text-align: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.5s ease-in-out;
+            opacity: 0;
+            overflow-y: auto; /* Allow vertical scrolling within the slide if content overflows */
+        }
+        .slide.active {
+            display: flex;
+            opacity: 1;
+        }
+        .slide-title {
+            font-size: 2.5rem; /* ~40px */
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 15px; /* Reduced margin */
+        }
+        .slide-subtitle {
+            font-size: 1.5rem; /* ~24px */
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 25px; /* Reduced margin */
+            padding-bottom: 15px; /* Padding for separator */
+            border-bottom: 2px solid #edf2f7; /* Subtle separator line */
+            width: 80%; /* Width of the separator */
+            max-width: 600px;
+        }
+        .slide-content {
+            font-size: 1.125rem; /* ~18px */
+            color: #2d3748;
+            line-height: 1.6;
+            text-align: left;
+            width: 100%;
+            max-width: 700px;
+            margin-top: 20px; /* Space after separator */
+            flex-grow: 1; /* Allow content to grow and take available space */
+            display: flex; /* Use flex for content to center items if needed */
+            flex-direction: column;
+            justify-content: center; /* Center content vertically within its space */
+            align-items: center; /* Center content horizontally */
+        }
+        .slide-content ul {
+            list-style-type: disc;
+            margin-left: 25px;
+            padding-left: 0;
+            width: 100%; /* Ensure ul takes full width of its container */
+            max-width: 600px; /* Limit max width for readability */
+        }
+        .slide-content ul li {
+            margin-bottom: 10px;
+        }
+
+        /* Custom list style with arrows for workflow/step-by-step slides */
+        .slide-content .arrow-list {
+            list-style-type: none; /* Remove default bullet */
+            margin-left: 0;
+            padding-left: 0;
+            width: 100%; /* Ensure ul takes full width of its container */
+            max-width: 600px; /* Limit max width for readability */
+        }
+        .slide-content .arrow-list li {
+            position: relative;
+            padding-left: 30px; /* Space for the arrow */
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .slide-content .arrow-list li::before {
+            content: '\27A4'; /* Unicode right arrow */
+            color: #4299e1; /* Blue color for the arrow */
+            font-size: 1.2em;
+            position: absolute;
+            left: 0;
+            top: 0;
+            line-height: inherit;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nav-button {
+            background-color: #4299e1;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .nav-button:hover {
+            background-color: #3182ce;
+            transform: translateY(-2px);
+        }
+        .nav-button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Specific styles for Business Model Canvas slide */
+        .business-model-canvas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px; /* Minimal gap for border effect */
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+            text-align: left;
+            border: 1px solid #cbd5e0; /* Outer border for the canvas grid */
+            border-radius: 8px;
+            overflow: hidden; /* Ensures inner borders align */
+            flex-grow: 1; /* Allow canvas grid to grow */
+            min-height: 350px; /* Adjusted minimum height for the canvas itself */
+        }
+        .canvas-section {
+            background-color: #f7fafc;
+            padding: 8px; /* Further reduced padding */
+            border: 1px solid #e2e8f0; /* Inner borders for sections */
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            min-height: 90px; /* Slightly reduced min-height for sections */
+        }
+        .canvas-section h4 {
+            font-weight: 600;
+            color: #2c5282;
+            margin-bottom: 4px; /* Further reduced margin */
+            font-size: 0.9rem; /* Further reduced font size */
+            border-bottom: 1px dashed #a0aec0; /* Dashed line under heading */
+            padding-bottom: 2px; /* Further reduced padding */
+            width: 100%;
+        }
+        .canvas-section ul {
+            list-style-type: none;
+            margin-left: 0;
+            padding-left: 0;
+            font-size: 0.8rem; /* Further reduced font size for list items */
+            color: #4a5568;
+            flex-grow: 1; /* Allows content to push to top */
+        }
+        .canvas-section ul li {
+            margin-bottom: 2px; /* Further reduced margin */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .slide-title {
+                font-size: 1.8rem;
+            }
+            .slide-subtitle {
+                font-size: 1.2rem;
+                width: 90%;
+            }
+            .slide-content {
+                font-size: 1rem;
+                padding: 0 10px; /* Add horizontal padding for smaller screens */
+            }
+            .slide-content ul, .slide-content .arrow-list {
+                margin-left: 15px;
+                max-width: none; /* Remove max-width on smaller screens */
+            }
+            .slide-content .arrow-list li {
+                padding-left: 25px;
+            }
+            .slide-content .arrow-list li::before {
+                font-size: 1em;
+            }
+            .presentation-container {
+                min-height: 400px; /* Adjust min height for mobile */
+            }
+            .slide {
+                padding: 20px; /* Reduce padding on smaller screens */
+            }
+            .business-model-canvas {
+                grid-template-columns: 1fr; /* Stack sections on small screens */
+                gap: 10px; /* More gap when stacked */
+                border: none; /* Remove outer border when stacked */
+                min-height: auto; /* Allow height to be auto for stacked canvas */
+            }
+            .canvas-section {
+                border: 1px solid #e2e8f0; /* Keep individual borders */
+                min-height: auto; /* Allow height to be auto for stacked sections */
+            }
+            .canvas-section h4 {
+                font-size: 0.85rem; /* Further reduce font size for mobile headings */
+            }
+            .canvas-section ul {
+                font-size: 0.75rem; /* Further reduce font size for mobile list items */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .slide-title {
+                font-size: 1.5rem;
+            }
+            .slide-subtitle {
+                font-size: 1rem;
+            }
+            .slide-content {
+                font-size: 0.9rem;
+            }
+            .nav-button {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-container">
+        <!-- Slide 1: Alert System -->
+        <div class="slide active" id="slide-1">
+            <h2 class="slide-title">📊 AI-Based ERP System for NCC Cadets</h2>
+            <h3 class="slide-subtitle">Alert System</h3>
+            <div class="slide-content">
+                <p class="mb-4">AI-powered alert system to prevent last-minute reporting confusion.</p>
+                <ul class="arrow-list mx-auto">
+                    <li>CO/Clerk uploads camp details and reporting dates.</li>
+                    <li>LLM analyzes if the reporting date is close to the publication date.</li>
+                    <li>If date is too close, ERP flags it as "last-minute notice."</li>
+                    <li>System identifies eligible cadets based on ERP profiles.</li>
+                    <li>Personalized WhatsApp alerts are sent instantly.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 2: Smart Camp Reporting (Scheduled Notifications & Response Tracking) -->
+        <div class="slide" id="slide-2">
+            <h2 class="slide-title">⏰ Smart Camp Reporting</h2>
+            <h3 class="slide-subtitle">Scheduled Notifications & Response Tracking</h3>
+            <div class="slide-content">
+                <p class="mb-4">Ensures cadets are notified even if the notice is early.</p>
+                <ul class="arrow-list mx-auto">
+                    <li>If reporting date is >3 days away, system schedules auto-alert 3 days before camp.</li>
+                    <li>Personalized messages sent via WhatsApp.</li>
+                    <li>Cadets can acknowledge via reply or link.</li>
+                    <li>ERP tracks confirmations and updates CO/ANO dashboard.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 3: Smart Camp Reporting (Cadet Acknowledgment Tracking) -->
+        <div class="slide" id="slide-3">
+            <h2 class="slide-title">🧑‍💻 Smart Camp Reporting</h2>
+            <h3 class="slide-subtitle">Cadet Acknowledgment Tracking</h3>
+            <div class="slide-content">
+                <p class="mb-4">Real-time visibility for COs and ANOs.</p>
+                <ul class="arrow-list mx-auto">
+                    <li>Dashboard shows who received and responded.</li>
+                    <li>Risk alerts if many cadets haven't responded.</li>
+                    <li>Helps plan replacements in advance.</li>
+                    <li>Reduces last-minute no-shows.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 4: Centralized Nominal Roll Workflow (Stepwise Process) -->
+        <div class="slide" id="slide-4">
+            <h2 class="slide-title">🗂️ Centralized Nominal Roll Workflow</h2>
+            <h3 class="slide-subtitle">Stepwise Process</h3>
+            <div class="slide-content">
+                <p class="mb-4">Digital forwarding of selections from college to battalion.</p>
+                <ul class="arrow-list mx-auto">
+                    <li>Directorate allocates camp vacancy to Groups.</li>
+                    <li>Groups assign vacancies to respective battalions.</li>
+                    <li>Each battalion assigns sub-vacancies to ANOs via ERP.</li>
+                    <li>ANOs select cadets from their institution through the portal.</li>
+                    <li>Clerk & CO review and digitally sign the BN list.</li>
+                    <li>Forwarded to Group Clerk.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 5: Nominal Roll Finalization -->
+        <div class="slide" id="slide-5">
+            <h2 class="slide-title">🔁 Nominal Roll Finalization</h2>
+            <h3 class="slide-subtitle">Hierarchical digital approval with traceability</h3>
+            <div class="slide-content">
+                <ul class="arrow-list mx-auto">
+                    <li>Group Clerk compiles final list.</li>
+                    <li>Group CO digitally signs and sends to Directorate.</li>
+                    <li>Directorate prepares final list for the hosting BN.</li>
+                    <li>Final signed nominal roll sent to organizing BN Clerk & CO.</li>
+                    <li>Full audit trail across all levels.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 6: Certificate Verification & Storage (shifted from 6) -->
+        <div class="slide" id="slide-6">
+            <h2 class="slide-title">🎖️ Certificate Verification & Storage</h2>
+            <h3 class="slide-subtitle">LLM ensures only authentic certificates are accepted</h3>
+            <div class="slide-content">
+                <ul class="arrow-list mx-auto">
+                    <li>Cadet uploads post-camp certificate.</li>
+                    <li>AI validates name, camp type, and structure.</li>
+                    <li>If approved, certificate is auto-uploaded to Google Drive.</li>
+                    <li>Rejected certificates get instant feedback for correction.</li>
+                    <li>All approved certificates are accessible by cadet & ANO.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 7: Motivation Panel (Notification System) (shifted from 7) -->
+        <div class="slide" id="slide-7">
+            <h2 class="slide-title">📢 Motivation Panel</h2>
+            <h3 class="slide-subtitle">Notification System</h3>
+            <div class="slide-content">
+                <p class="mb-4">Highlight achievements to inspire cadets.</p>
+                <ul class="arrow-list mx-auto">
+                    <li>ERP publishes selected cadet names publicly.</li>
+                    <li>Details include camp name, unit, and college.</li>
+                    <li>COs can add motivational remarks.</li>
+                    <li>Builds competition and morale within units.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 8: Future Scope – Smart ERP Evolution (shifted from 8) -->
+        <div class="slide" id="slide-8">
+            <h2 class="slide-title">🔮 Future Scope – Smart ERP Evolution</h2>
+            <h3 class="slide-subtitle">Next-gen modules to expand NCC digitalization</h3>
+            <div class="slide-content">
+                <ul class="arrow-list mx-auto">
+                    <li>NCC-only Social Media Feed (camp highlights, stories, achievements).</li>
+                    <li>Monetization via ads from NCC Stores (uniforms, kits).</li>
+                    <li>Inventory Management for each unit (gear, weapons, medals).</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 9: Future Scope – AI-Driven Modules (shifted from 9) -->
+        <div class="slide" id="slide-9">
+            <h2 class="slide-title">🌐 Future Scope – AI-Driven Modules</h2>
+            <h3 class="slide-subtitle">Advanced features for smart operations</h3>
+            <div class="slide-content">
+                <ul class="arrow-list mx-auto">
+                    <li>Cadet Daily Fall-in Attendance (QR/mobile based, integrated to ERP).</li>
+                    <li>Cadet Enrollment using LLM:
+                        <ul class="arrow-list ml-6 mt-2">
+                            <li>Verifies identity documents</li>
+                            <li>Detects duplicates</li>
+                            <li>Auto-fills cadet ERP profile</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 10: Business Model Canvas – NCC ERP System (shifted from 10) -->
+        <div class="slide" id="slide-10">
+            <h2 class="slide-title">💼 Business Model Canvas – NCC ERP System</h2>
+            <h3 class="slide-subtitle">Self-sustaining ecosystem for cadet development</h3>
+            <div class="business-model-canvas">
+                <div class="canvas-section">
+                    <h4>Customer Segments:</h4>
+                    <ul>
+                        <li>20L+ NCC cadets</li>
+                        <li>ANOs, COs, Clerks</li>
+                        <li>NCC Institutions & Directorates</li>
+                    </ul>
+                </div>
+                <div class="canvas-section">
+                    <h4>Value Proposition:</h4>
+                    <ul>
+                        <li>AI-driven ERP, alerts, and record system</li>
+                        <li>Maintained and built by student interns</li>
+                    </ul>
+                </div>
+                <div class="canvas-section">
+                    <h4>Revenue Model:</h4>
+                    <ul>
+                        <li>Rs. 20/cadet/quarter &rarr; Rs. 16 Cr/year</li>
+                    </ul>
+                </div>
+                <div class="canvas-section">
+                    <h4>Use of Funds:</h4>
+                    <ul>
+                        <li>Internship stipends for BCA/Engineering (tech interns)</li>
+                        <li>Commerce students (finance interns)</li>
+                        <li>Management students (HR interns)</li>
+                        <li>Govt-approved internship certification</li>
+                    </ul>
+                </div>
+                <div class="canvas-section">
+                    <h4>Channels:</h4>
+                    <ul>
+                        <li>NCC ERP Web/App</li>
+                        <li>ANO Onboarding</li>
+                        <li>Govt Support</li>
+                    </ul>
+                </div>
+                <div class="canvas-section">
+                    <h4>Activities:</h4>
+                    <ul>
+                        <li>Dev & Maintenance</li>
+                        <li>Intern Training</li>
+                        <li>AI Features</li>
+                    </ul>
+                </div>
+                <div class="canvas-section">
+                    <h4>Resources:</h4>
+                    <ul>
+                        <li>Interns</li>
+                        <li>Infra</li>
+                        <li>APIs</li>
+                        <li>Institutional Network</li>
+                    </ul>
+                </div>
+                <div class="canvas-section">
+                    <h4>Costs:</h4>
+                    <ul>
+                        <li>Server</li>
+                        <li>Intern Stipends</li>
+                        <li>Supervision</li>
+                    </ul>
+                </div>
+                <div class="canvas-section">
+                    <h4>Revenue Streams:</h4>
+                    <ul>
+                        <li>Cadet Fees</li>
+                        <li>NCC Store Ads</li>
+                        <li>CSR Funds</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Benefits (New position) -->
+        <div class="slide" id="slide-11">
+            <h2 class="slide-title">🌟 Benefits</h2>
+            <h3 class="slide-subtitle">Key Advantages of the NCC ERP System</h3>
+            <div class="slide-content">
+                <ul class="arrow-list mx-auto">
+                    <li>No latency in works.</li>
+                    <li>Last moment order also reaches to lowest in the hierarchy.</li>
+                    <li>Zero Paperwork.</li>
+                    <li>Digital drive of certificates.</li>
+                    <li>Use of revenue in building future of NCC cadets.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 12: Thank You – Let’s Modernize NCC Together (shifted from 11) -->
+        <div class="slide" id="slide-12">
+            <h2 class="slide-title">🙌 Thank You</h2>
+            <h3 class="slide-subtitle">Let’s Modernize NCC Together</h3>
+            <div class="slide-content">
+                <p class="text-2xl font-semibold mb-6">Transforming tradition with technology</p>
+                <ul class="list-none text-xl font-medium mb-8">
+                    <li>Secure</li>
+                    <li>Smart</li>
+                    <li>Scalable</li>
+                </ul>
+                <p class="text-xl font-medium mb-4">Supporting NCC with AI!!</p>
+                <p class="text-lg"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation-buttons">
+        <button id="prevBtn" class="nav-button">Previous</button>
+        <button id="nextBtn" class="nav-button">Next</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            let currentSlideIndex = 0;
+
+            /**
+             * Shows a specific slide and updates navigation button states.
+             * @param {number} index - The index of the slide to show.
+             */
+            function showSlide(index) {
+                // Hide all slides
+                slides.forEach((slide, i) => {
+                    slide.classList.remove('active');
+                });
+
+                // Show the current slide
+                slides[index].classList.add('active');
+
+                // Update button states
+                prevBtn.disabled = index === 0;
+                nextBtn.disabled = index === slides.length - 1;
+            }
+
+            /**
+             * Navigates to the next slide.
+             */
+            function nextSlide() {
+                if (currentSlideIndex < slides.length - 1) {
+                    currentSlideIndex++;
+                    showSlide(currentSlideIndex);
+                }
+            }
+
+            /**
+             * Navigates to the previous slide.
+             */
+            function prevSlide() {
+                if (currentSlideIndex > 0) {
+                    currentSlideIndex--;
+                    showSlide(currentSlideIndex);
+                }
+            }
+
+            // Event listeners for navigation buttons
+            nextBtn.addEventListener('click', nextSlide);
+            prevBtn.addEventListener('click', prevSlide);
+
+            // Keyboard navigation (arrow keys)
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'ArrowRight') {
+                    nextSlide();
+                } else if (event.key === 'ArrowLeft') {
+                    prevSlide();
+                }
+            });
+
+            // Initialize the first slide
+            showSlide(currentSlideIndex);
+        });
+    </script>
+</body>
+</html>
